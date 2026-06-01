@@ -1,0 +1,65 @@
+general {
+    interval 		= 2
+    markup          = 'pango'
+    color_good      = '#ffffff'
+    color_degraded  = '#BF616A'
+    color_bad       = '#BF616A'
+}
+
+order += "wireless _first_"
+order += "volume master"
+order += "battery macsmc-battery"
+order += "cpu_temperature 0"
+order += "disk /"
+order += "tztime local"
+
+wireless _first_ {
+        format_up = "<span color='#A3BE8C'>%quality@%essid</span>"
+        format_down = "<span color='#BF616A'>DOWN</span>"
+}
+
+battery macsmc-battery {
+    path = "/sys/class/power_supply/macsmc-battery/uevent"
+    format = "<span color='#888888'>0</span>: %status %percentage %consumption"
+
+    format_down = "No Battery"
+    last_full_capacity = false 
+    integer_battery_capacity = true
+    low_threshold = 15
+    threshold_type = percentage
+    status_chr = "CHR"
+    status_bat = "BAT"
+    status_full = "FULL"
+}
+
+tztime local {
+    format = "%H:%M:%S %d-%m-%y"
+}
+
+load {
+    format = "%1min"
+}
+
+cpu_usage {
+    format = "%usage"
+}
+
+cpu_temperature 0 {
+    format = "%degrees°C"
+    path = "/sys/class/thermal/thermal_zone0/temp"
+    max_threshold = 75
+}
+
+disk "/" {
+	format = "%avail <span color='#888888'>/</span>"
+	threshold_type = percentage_avail
+	low_threshold = 10
+}
+
+volume master {
+    format = "%volume"
+    format_muted = "<span color='#BF616A'>MUTED</span>"
+    device = "default"
+    mixer = "Master"
+    mixer_idx = 0
+}

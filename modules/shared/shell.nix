@@ -9,7 +9,6 @@
 		p7zip
 		ripgrep 
 		bat
-		kitty
 
 		radare2 
 		ghidra 
@@ -20,6 +19,8 @@
 		checksec 
 		gdb
 		gef
+	] ++ lib.optionals (pkgs.stdenv.isx86_64) [
+		kitty
 	]; 
 
 	home.file = {
@@ -45,19 +46,19 @@
 			};
 			modules = [
 				"title"
-					"separator"
-					"os"
-					"host"
-					"kernel"
-					"uptime"
-					"packages"
-					"shell"
-					"wm"
-					"terminal"
-					"cpu"
-					"memory"
-					"disk"
-					"colors"
+				"separator"
+				"os"
+				"host"
+				"kernel"
+				"uptime"
+				"packages"
+				"shell"
+				"wm"
+				"terminal"
+				"cpu"
+				"memory"
+				"disk"
+				"colors"
 			];
 		};
 	};
@@ -135,8 +136,12 @@
 			function mkcd() {
 				mkdir -p "$1" && cd "$1"
 			}           
+			
+			if [ ! -f /run/current-system/sw/bin/nixos-rebuild ]; then
+				PROMPT="%n@%m:%~/ > "
+			fi
 
-		fastfetch
+			fastfetch
 			'';
 	};
 }

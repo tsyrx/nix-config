@@ -1,10 +1,36 @@
 { config, pkgs, ... }:
 
 {
+	home.packages = with pkgs; [
+		ibm-plex
+		nerd-fonts.meslo-lg
+		libre-baskerville
+		noto-fonts-color-emoji
+		twitter-color-emoji
+	];
+
 	nixpkgs.config = {
 		allowUnfree = true; 
 		allowUnfreePredicate = (_: true); 
 	}; 
+
+	#################################
+	# fonts
+	#################################
+
+	fonts.fontconfig = {
+		enable = true; 
+		defaultFonts = {
+			sansSerif = [ "IBM Plex Sans" ];
+			serif = [ "Libre Baskerville" ]; 
+			monospace = [ "MesloLGS Nerd Font Mono" ];
+			emoji = [ "Twitter Color Emoji" ]; 
+		};
+	};
+
+	#################################
+	# gtk settings 
+	#################################
 
 	gtk = {
 		enable = true; 

@@ -60,30 +60,6 @@
 	};
 
 	######################################
-	# fonts 
-	######################################
-
-	fonts.packages = with pkgs; [
-		ibm-plex
-		# fira-code - cool monospace 
-		nerd-fonts.meslo-lg
-		libre-baskerville
-		noto-fonts-color-emoji
-		twitter-color-emoji
-	];
-	fonts.fontconfig = {
-		enable = true; 
-		useEmbeddedBitmaps = true;
-		defaultFonts = {
-			sansSerif = [ "IBM Plex Sans" ];
-			serif = [ "Libre Baskerville" ]; 
-			monospace = [ "MesloLGS Nerd Font Mono" ];
-			emoji = [ "Twitter Color Emoji" ]; 
-		};
-	};
-
-
-	######################################
 	# x server & lightdm
 	######################################
 
