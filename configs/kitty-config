@@ -1,0 +1,32 @@
+# font
+bold_font		auto
+italic_font		auto
+bold_italic_font	auto
+font_size 		11.0
+modify_font 		underline_thickness 	300%
+modify_font 		cell_width		-10%
+# modify_font 		baseline 		3
+# box_drawing_scale 	0.2, 1, 1.5, 2
+
+# background 
+background_opacity 	1
+# background 		#191724
+
+# cursor
+cursor 			#ffffff
+cursor_text_color	#ff1daa	
+cursor_shape 		block
+shell_integration	no-cursor
+cursor_blink_interval 	0
+
+# mouse
+mouse_hide_wait 	-1
+url_color 		#fca103
+url_style		straight
+detect_urls 		yes
+
+# bell 
+enable_audio_bell no
+
+# ninja
+# cursor_trail 1

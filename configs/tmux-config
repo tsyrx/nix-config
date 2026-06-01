@@ -1,0 +1,43 @@
+unbind r
+unbind C-b
+set -g prefix C-a
+bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded!"
+
+bind-key h select-pane -L 
+bind-key j select-pane -D 
+bind-key k select-pane -U 
+bind-key l select-pane -R 
+bind-key -r H resize-pane -L 5
+bind-key -r J resize-pane -D 5
+bind-key -r K resize-pane -U 5
+bind-key -r L resize-pane -R 5
+
+set -g history-limit 50000
+set -g base-index 1
+setw -g pane-base-index 1
+
+set -g status-position top
+set -g status-style 'bg=#000000 fg=#d9d7d7'
+set -g status-left-length 20
+set -g status-left '#[fg=#00e68a,bold] #S #[fg=#30363d]│ '
+set -g status-right-length 50
+set -g status-right '#{?window_zoomed_flag,ZOOOOOOOOOOOOM,} #{pane_current_path} #[fg=#30363d]│ #[fg=#00e68a,bold]#{host}'
+
+set -g window-status-format "#[fg=#484f58] #I:#W "
+set -g window-status-current-format "#[fg=#00e68a,bold] #I:#W*"
+set -g window-status-separator "#[fg=#30363d]│"
+set -g status-justify left
+
+set -g pane-border-style 'fg=#30363d'
+set -g pane-active-border-style 'fg=#00e68a'
+
+set -g message-style 'bg=#00e68a fg=#000000 bold'
+
+# Copying 
+setw -g mode-keys vi
+bind -T copy-mode-vi v send -X begin-selection 
+bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'xclip -selection clipboard -i'
+
+set -g default-terminal "tmux-256color"
+set -as terminal-features ",xterm-256color:RGB"
+

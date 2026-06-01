@@ -4,7 +4,7 @@
 	imports = [
 		../../modules/shared/shell.nix
 		../../modules/shared/theme.nix
-		../../modules/x11/desktop.nix
+		../../modules/wayland/desktop.nix
 	]; 
 
 	##############################
