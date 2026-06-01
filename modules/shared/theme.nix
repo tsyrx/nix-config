@@ -5,7 +5,6 @@
 		ibm-plex
 		nerd-fonts.meslo-lg
 		libre-baskerville
-		noto-fonts-color-emoji
 		twitter-color-emoji
 	];
 
