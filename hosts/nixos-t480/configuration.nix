@@ -22,8 +22,9 @@
 		options = "--delete-older-than 7d";
 	};
 
+
 	######################################
-	# pwn
+	# for pwn 
 	######################################
 
 	programs.nix-ld.enable = true; 
@@ -109,6 +110,12 @@
 			};
 		}; 
 	};
+
+	######################################
+	# powerbutton off 
+	######################################
+
+	services.logind.settings.Login.HandlePowerKey = "ignore"; 
 
 	######################################
 	# audio & input
