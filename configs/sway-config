@@ -16,6 +16,9 @@ bindsym XF86AudioMicMute exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SOUR
 bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 10%-
 bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl set +10%
 
+bindsym XF86LaunchA exec brightnessctl --device='*kbd_backlight' set 10%-
+bindsym XF86Search exec brightnessctl --device='*kbd_backlight' set +10%
+
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 tiling_drag titlebar
