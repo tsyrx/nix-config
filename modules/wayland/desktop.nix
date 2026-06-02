@@ -14,11 +14,8 @@
 
 	programs.swaylock = {
 		enable = true; 
-
+		package = pkgs.runCommand "dummmy" {} "mkdir $out";
 		settings = {
-			image = "/home/tsyr/Pictures/backgrounds/feedbacker-bw-inv.png";
-			indicator = true; 
-
 			inside-color = "00000000";
 			ring-color = "ff0000bb";
 			line-color = "00000000";
@@ -42,13 +39,14 @@
 
 	services.swayidle = {
 		enable = true; 
-		events = [
-			{ event = "before-sleep"; command = "${pkgs.swaylock}/bin/swaylock -f"; }
-		]; 
+		events = {
+			before-sleep = "/usr/bin/swaylock -f --config ${config.xdg.configHome}/swaylock/config"; 
+			lock = "/usr/bin/swaylock -f --config ${config.xdg.configHome}/swaylock/config"; 
+		}; 
 		timeouts = [
 			{
 				timeout = 300; 
-				command = "${pkgs.swaylock}/bin/swaylock -f";
+				command = "/usr/bin/swaylock -f --config ${config.xdg.configHome}/swaylock/config";
 			}
 
 			{

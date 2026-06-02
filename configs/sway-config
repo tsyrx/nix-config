@@ -196,3 +196,11 @@ client.focused_inactive #073642 #073642 #93a1a1 #073642 #073642
 client.unfocused        #000000 #000000 #000000 #000000 #000000
 client.urgent           #dc322f #dc322f #fdf6e3 #dc322f #dc322f
 client.placeholder      #000000 #0c0c0c #ffffff #000000 #0c0c0c
+
+###################################
+# Swaylock
+###################################
+
+exec systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+exec systemctl --user restart swayidle
+

@@ -3,6 +3,7 @@
 {
 	imports = [
 		../../modules/shared/shell.nix
+		../../modules/shared/firefox.nix
 		../../modules/shared/theme.nix
 		../../modules/x11/desktop.nix
 	]; 
@@ -22,9 +23,5 @@
 
 	# Let Home Manager install and manage itself.
 	programs.home-manager.enable = true;
-
-	home.packages = with pkgs; [
-		firefox 
-	]; 
 }
 
