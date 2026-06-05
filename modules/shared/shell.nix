@@ -2,6 +2,8 @@
 
 {
 	home.packages = with pkgs; [
+		emacs-pgtk
+
 		tmux 
 		curl 
 		btop 
@@ -115,6 +117,7 @@
 		shellAliases = {
 			sudo = "sudo "; 
 			ll = "ls -lah";
+			l = "ls -lh";
 			ls = "ls --group-directories-first --color=auto";
 			grep = "grep --color=auto";
 			rm = "rm -i";
