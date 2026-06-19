@@ -33,7 +33,7 @@ bindsym $mod+t exec kitty
 bindsym $mod+g exec firefox
 
 # start emacs 
-bindsym $mod+e exec emacs
+bindsym $mod+e exec emacsclient -c
 
 # kill focused window
 bindsym $mod+w kill

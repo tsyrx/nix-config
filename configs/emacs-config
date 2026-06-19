@@ -1,0 +1,436 @@
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; use-package Setup
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require 'package)
+
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+			 ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+			 ("gnu" . "https://elpa.gnu.org/packages/")))
+(package-initialize)
+
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; use-package Setup
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(let ((nix-paths (list (expand-file-name "~/.nix-profile/bin")
+		       (expand-file-name "~/.local/state/nix/profile/bin")
+		       (concat "/etc/profiles/per-user/" (getenv "USER") "/bin")
+		       "/run/current-system/sw/bin")))
+  (dolist (path nix-paths)
+    (when (file-directory-p path)
+      (add-to-list 'exec-path path)
+      (setenv "PATH" (concat path ":" (getenv "PATH"))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Garbage collection
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package gcmh
+  :init
+  (setq gcmh-idle-delay 2
+        gcmh-high-cons-threshold (* 64 1024 1024))
+  :config
+  (gcmh-mode 1))
+
+(setq gc-cons-threshold (* 16 1024 1024))
+
+; (require 'midnight) ; clean up hidden buffers after 3 days
+; (midnight-mode 1)
+; (global-set-key (kbd "C-x C-b") 'ibuffer)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; File cleanup
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
+(setq auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t)))
+(setq create-lockfiles nil)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UI
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq inhibit-startup-message t) ; Disable the gnu homepage
+(setq ring-bell-function 'ignore) ; Disable audible bell
+(setq visible-bell t) ; Disable audible bell too
+(scroll-bar-mode -1)  ; Disable visible scrollbar
+(tool-bar-mode -1)    ; Disable the toolbar
+(tooltip-mode -1)     ; Disable tooltips
+(set-fringe-mode 0)   ; Set margins
+(menu-bar-mode -1)    ; Disable the menu bar
+(blink-cursor-mode -1)
+(setq display-line-numbers-type 'relative)
+(global-display-line-numbers-mode 1)
+(setq show-trailing-whitespace t)
+(setq truncate-lines t)
+
+(dolist (mode '(org-mode-hook
+		term-mode-hook
+		shell-mode-hook
+		eshell-mode-hook
+		pdf-view-mode-hook
+		vterm-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode -1))))
+
+(set-face-attribute 'default nil :height 115) ; Setting font & font size
+
+; (use-package doom-themes
+;   :config (load-theme 'doom-dark+ t))
+
+; (use-package doom-modeline
+;   :init (doom-modeline-mode 1))
+
+; (load-theme 'leuven-dark t) ; weird orange cursor brown background
+; (load-theme 'deeper-blue t) ; weird green cursor dark-blue background
+; (load-theme 'leuven t)      ; pretty good light mode
+; (load-theme 'modus-vivendi t) ; high-contrast dark mode
+(load-theme 'wheatgrass t) ; high-contrast dark mode
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Evil Mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump t)
+  (setq evil-normal-state-cursor 'box)
+  (setq evil-insert-state-cursor 'box)
+  (setq evil-visual-state-cursor 'box)
+  (setq evil-emacs-state-cursor 'box)
+  (setq evil-replace-state-cursor 'box)
+  (setq evil-operator-state-cursor 'box)
+  :config
+  (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+  (define-key evil-normal-state-map (kbd "C-t") 'transpose-chars)
+
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal)
+  (evil-set-initial-state 'term-mode 'emacs)
+  (evil-set-initial-state 'eshell-mode 'emacs)
+  (evil-set-initial-state 'shell-mode 'emacs)
+  (evil-set-initial-state 'vterm-mode 'insert)
+  (evil-set-initial-state 'emms-browser-mode 'normal)
+  (evil-set-initial-state 'emms-playlist-mode 'normal))
+
+(use-package evil-collection
+  :after evil
+  :init
+  (setq evil-collection-mode-list '(dired magit vterm process-menu helpful info ivy help helpful outline org pdf emms))
+  :config (evil-collection-init))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Ivy
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package ivy
+  :diminish
+  :config (ivy-mode 1))
+
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+	 ("C-x C-f" . counsel-find-file)))
+
+(use-package swiper
+  :bind (("C-s" . swiper)))
+
+(use-package helpful
+  :bind
+  ([remap describe-function] 	. helpful-callable)
+  ([remap describe-variable] 	. helpful-variable)
+  ([remap describe-key] 	. helpful-key))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Org
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package org
+  :hook (org-mode . org-indent-mode)
+  :config
+  (setq org-startup-indented t)
+  (setq org-hide-emphasis-markers t)
+  (setq org-ellipsis " ▾"))
+
+(use-package visual-fill-column
+  :hook ((org-mode . visual-line-mode)
+	 (org-mode . visual-fill-column-mode))
+  :custom
+  (visual-fill-column-width 80)
+  (visual-fill-column-center-text t))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Dired
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package dired
+    :ensure nil
+    :config (setq dired-maybe-use-globstar t)
+	    (setq dired-switches-in-mode-line 'as-is)
+	    (setq dired-recursive-deletes 'top)
+	    (setq dired-create-destination-dirs 'always)
+	    (setq dired-create-destination-dirs-on-trailing-dirsep t)
+	    (setq dired-copy-preserve-time t)
+	    (setq wdired-allow-to-change-permissions t)
+	    (setq lpr-command 'cat)
+	    (evil-define-key 'visual dired-mode-map "u" 'dired-unmark)
+	    (evil-define-key 'normal dired-mode-map "f" 'dired-find-file)
+	    (evil-define-key 'normal dired-mode-map "o" 'dired-find-file-other-window)
+	    (evil-define-key 'normal dired-mode-map "g" 'revert-buffer)
+	    (evil-define-key 'normal dired-mode-map "s" 'dired-listing-switches)
+	    (evil-define-key 'normal dired-mode-map (kbd "C-o") 'dired-display-file))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Vterm
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package vterm
+  :commands vterm
+  :config
+  (setq term-prompt-regexp "^[^#$%>\\n]*[#$%>] *")
+  (setq vterm-max-scrollback 10000)
+  (evil-define-key 'insert vterm-mode-map (kbd "<escape>") 'vterm-send-escape)
+  (evil-define-key 'insert vterm-mode-map (kbd "C-S-v") 'vterm-yank)
+  (evil-define-key 'visual vterm-copy-mode-map "y" 'vterm-copy-mode-done)
+
+  (add-hook 'vterm-copy-mode-hook
+	    (lambda ()
+	      (if vterm-copy-mode
+		    (evil-normal-state)
+		  (evil-insert-state)))))
+
+(defun my/vterm-new ()
+  (interactive)
+  (vterm t))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ps_mem
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun my/run-ps-mem ()
+  "Run ps_mem as root and collapse Nix store paths."
+  (interactive)
+  (let* ((buf (get-buffer-create "*ps_mem*"))
+         (ps-mem-bin (executable-find "ps_mem")))
+    
+    (unless ps-mem-bin
+      (error "Emacs cannot find ps_mem. Make sure it is installed in your Nix environment!"))
+
+    (let* ((default-directory "/sudo::/")
+           (process (start-file-process-shell-command "ps_mem" buf ps-mem-bin)))
+      
+      (display-buffer buf)
+      
+      (set-process-sentinel
+       process
+       (lambda (proc event)
+         (when (string-match-p "finished" event)
+           (with-current-buffer (process-buffer proc)
+             (let ((inhibit-read-only t))
+               (save-excursion
+                 (goto-char (point-min))
+                 (while (re-search-forward "/nix/store/[a-z0-9]+-\\([^/]+\\)/" nil t)
+                   (replace-match "[\\1]/")))))))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; pdf-tools
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package pdf-tools
+  :defer t
+  :mode ("\\.pdf\\'" . pdf-view-mode)
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  ;; Initialize the package automatically
+  (pdf-tools-install :no-query)
+  ;; Automatically turn on Dark Mode for PDFs (inverts the colors!)
+  (add-hook 'pdf-view-mode-hook 'pdf-view-midnight-minor-mode)
+  (evil-set-initial-state 'pdf-view-mode 'normal))
+
+(with-eval-after-load 'pdf-view
+  (evil-set-initial-state 'pdf-view-mode 'normal)
+  (evil-define-key 'normal pdf-view-mode-map
+    "j" 'pdf-view-next-line-or-next-page
+    "k" 'pdf-view-previous-line-or-previous-page
+    "J" 'pdf-view-next-page
+    "K" 'pdf-view-previous-page
+    (kbd "C-j") 'pdf-view-next-page
+    (kbd "C-k") 'pdf-view-previous-page
+    "gg" 'pdf-view-first-page
+    "G" 'pdf-view-last-page
+    "=" 'pdf-view-enlarge
+    "-" 'pdf-view-shrink
+    "W" 'pdf-view-fit-width-to-window
+    "H" 'pdf-view-fit-height-to-window))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Web Search
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq browse-url-browser-function 'browse-url-default-browser)
+(setq browse-url-generic-program "firefox")
+
+(require 'url-util)
+
+(defun my/search-web ()
+  "Search the web for the active region or a prompted query."
+  (interactive)
+  (let ((query (if (use-region-p)
+                   (buffer-substring-no-properties (region-beginning) (region-end))
+                 (read-string "Search Firefox: "))))
+    (browse-url-firefox (concat "https://duckduckgo.com/?q=" (url-hexify-string query)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; EMMS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package emms
+  :config
+  (require 'emms-setup)
+  (emms-all)
+  (emms-default-players)
+  (setq emms-source-file-default-directory "~/music/downloads")
+  (setq emms-browser-covers #'emms-browser-cache-thumbnail-async)
+  (setq emms-browser-covers-file-extensions '("jpg" "jpeg" "png" "gif"))
+  (setq emms-browser-covers-file-names '("cover" "folder" "front" "art" "album"))
+  (setq emms-source-file-exclude-regexp
+	(concat emms-source-file-exclude-regexp
+                "\\|\\.\\(jpg\\|jpeg\\|png\\|gif\\|cue\\|log\\|txt\\)\\'")))
+
+(with-eval-after-load 'emms
+  (evil-define-key 'normal emms-playlist-mode-map
+    (kbd "RET") 'emms-playlist-mode-play-smart  ; Play the track under the cursor
+    (kbd "SPC") 'emms-pause                     ; Spacebar to Pause/Play
+    (kbd "TAB") 'emms-browser-toggle-subitems   ; Play the track under the cursor
+    (kbd "q")   'bury-buffer)                   ; Play the track under the cursor
+
+  (evil-define-key 'normal emms-browser-mode-map
+    (kbd "RET") 'emms-playlist-mode-play-smart  ; Play the track under the cursor
+    (kbd "SPC") 'emms-pause                     ; Spacebar to Pause/Play
+    (kbd "n")   'emms-next                      ; 'n' for Next track
+    (kbd "p")   'emms-previous                  ; 'p' for Previous track
+    (kbd "s")   'emms-stop                      ; 's' to Stop completely
+    (kbd "d")   'emms-playlist-mode-kill-track  ; 'd' to delete track from playlist
+    (kbd "c")   'emms-playlist-clear            ; 'c' to clear the whole playlist
+    (kbd "q")   'bury-buffer))                  ; 'q' to hide the playlist
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Other packages 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package nhexl-mode
+  :commands nhexl-mode
+  :config
+  (setq nhexl-nibble-edit-mode t))
+
+(use-package nix-mode
+  :mode "\\.nix\\'")
+
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode 1)
+  :bind-keymap ("C-c p" . projectile-command-map))
+
+(use-package magit
+  :commands magit-status)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Keybinds
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package general
+  :config
+  (general-create-definer leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-SPC")
+
+  (leader-keys
+   "s" '(hydra-text-scale/body :which-key "scale text")
+   "r" '(hydra-resize-windows/body :which-key "resize window")
+   "e" '(:ignore t :which-key "search web")
+   "ew" '(eww :which-key "eww search web")
+   "ef" '(my/search-web :which-key "firefox search web")
+   "p" '(my/run-ps-mem :which-key "ps_mem")
+   "t" '(:ignore t :which-key "vterm")
+   "to" '(vterm :which-key "toggle vterm")
+   "tn" '(my/vterm-new :which-key "new vterm")
+   "m" '(:ignore t :which-key "music")
+   "mp" '(emms-pause :which-key "play/pause")
+   "mn" '(emms-next :which-key "next track")
+   "mb" '(emms-previous :which-key "prev track")
+   "ms" '(emms-stop :which-key "stop")
+   "o" '(my/open-zathura-target :which-key "zathura open file")))
+
+(use-package hydra)
+(defhydra hydra-text-scale (:timeout 4)
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("f" nil "finished" :exit t))
+
+(defhydra hydra-resize-windows (:timeout 4)
+  ("l" evil-window-increase-width "wider")
+  ("h" evil-window-decrease-width "narrower")
+  ("k" evil-window-increase-height "taller")
+  ("j" evil-window-decrease-height "shorter")
+  ("f" nil "finished" :exit t))
+
+(use-package which-key
+  :diminish which-key-mode
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 0.3))
+
+(defun my/open-zathura-target ()
+  (interactive)
+  (let ((file (if (eq major-mode 'dired-mode)
+		  (dired-get-file-for-visit)
+		(buffer-file-name))))
+    (if file
+	(start-process "zathura" nil "zathura" file)
+      (message "No file found."))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Custom
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(counsel evil-collection gcmh general
+	     helpful hydra magit nhexl-mode nix-mode projectile
+	     visual-fill-column vterm which-key)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+)

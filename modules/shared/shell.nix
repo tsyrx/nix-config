@@ -1,9 +1,15 @@
-{ config, pkgs, ... }: 
+{ config, pkgs, pkgs-stable, ... }: 
 
 {
 	home.packages = with pkgs; [
-		emacs-pgtk
+    # build 
+		cmake
+		gcc
+		gnumake
+		libtool	
+		perl
 
+    # general tools 
 		tmux 
 		curl 
 		btop 
@@ -11,7 +17,11 @@
 		p7zip
 		ripgrep 
 		bat
+		ps_mem
+    gemini-cli
+    wlr-randr
 
+    # pwn
 		radare2 
 		ghidra 
 		python3Packages.ropper 
@@ -21,14 +31,41 @@
 		checksec 
 		gdb
 		gef
+
+    # other 
+    typer
+    nicotine-plus
+    mpv
+    imagemagick
 	] ++ lib.optionals (pkgs.stdenv.isx86_64) [
-		kitty
+		kitty # kitty isn't properly built in aarch64
 	]; 
 
 	home.file = {
 		".config/kitty/kitty.conf".source = ../../configs/kitty-config; 
 		".config/tmux/tmux.conf".source = ../../configs/tmux-config; 
+		".emacs.d/init.el".source = ../../configs/emacs-config; 
+		".config/typer.yml".source = ../../configs/typer-config; 
 	}; 
+
+  programs.emacs = {
+  enable = true;
+  
+  package = pkgs.emacs-pgtk.override {
+    withNativeCompilation = false;
+  };
+  
+  extraPackages = epkgs: [
+    epkgs.pdf-tools
+    epkgs.vterm
+    epkgs.exec-path-from-shell
+    epkgs.emms
+  ];
+};
+
+services.emacs = {
+	enable = true;
+};
 
 	programs.direnv = {
 		enable = true; 
@@ -124,6 +161,7 @@
 			checksec = "checksec file";
 			m-hms = "home-manager switch --flake ~/nix-config/#tsyr@fred"; 
 			t-hms = "home-manager switch -f ~/nix-config/hosts/nixos-t480/home.nix"; 
+			typer = "typer --config ~/.config/typer.yml";
 		}; 
 
 		envExtra = ''

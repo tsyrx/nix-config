@@ -29,9 +29,9 @@
 	home.stateVersion = "26.05"; # Version of home-manager, don't change. 
 
 	home.sessionVariables = {
-	# EDITOR = "emacs";
+	        # EDITOR = "emacsclient";
+	        GDK_DEBUG = "no-pixel-cache";
 	};
-
 	# Let Home Manager install and manage itself.
 	programs.home-manager.enable = true;
 }

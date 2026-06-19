@@ -5,6 +5,10 @@
 		brightnessctl
 		wofi
 		i3status
+
+		zathura
+
+    wlr-randr
 	];
 
 	home.file = {
