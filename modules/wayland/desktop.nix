@@ -16,6 +16,10 @@
 		".config/i3status/i3status.conf".source = ../../configs/sway-i3-status;
 	};
 
+  home.sessionVariables = {
+    "_JAVA_AWT_WM_NONREPARENTING" = "1";
+  }; 
+
 	programs.swaylock = {
 		enable = true; 
 		package = pkgs.runCommand "dummmy" {} "mkdir $out";

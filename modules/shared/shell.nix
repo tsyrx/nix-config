@@ -23,7 +23,6 @@
 
     # pwn
 		radare2 
-		ghidra 
 		python3Packages.ropper 
 		ltrace 
 		strace 
@@ -31,6 +30,7 @@
 		checksec 
 		gdb
 		gef
+		ghidra 
 
     # other 
     typer
@@ -38,7 +38,7 @@
     mpv
     imagemagick
 	] ++ lib.optionals (pkgs.stdenv.isx86_64) [
-		kitty # kitty isn't properly built in aarch64
+		kitty 
 	]; 
 
 	home.file = {

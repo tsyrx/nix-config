@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
 	imports = [
@@ -34,5 +34,16 @@
 	};
 	# Let Home Manager install and manage itself.
 	programs.home-manager.enable = true;
-}
+
+	##############################
+	# pwndbg
+	##############################
+
+  home.packages = with pkgs; [
+        inputs.pwndbg.packages."aarch64-linux".default
+        caido-desktop
+        chromium
+        texlive.combined.scheme-medium
+    ];
+    }
 

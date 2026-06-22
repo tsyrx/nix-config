@@ -112,6 +112,7 @@
   (setq evil-emacs-state-cursor 'box)
   (setq evil-replace-state-cursor 'box)
   (setq evil-operator-state-cursor 'box)
+  (setq evil-undo-system 'undo-redo)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -128,7 +129,8 @@
   (evil-set-initial-state 'shell-mode 'emacs)
   (evil-set-initial-state 'vterm-mode 'insert)
   (evil-set-initial-state 'emms-browser-mode 'normal)
-  (evil-set-initial-state 'emms-playlist-mode 'normal))
+  (evil-set-initial-state 'emms-playlist-mode 'normal)
+  (evil-set-initial-state 'wdired-mode 'normal))
 
 (use-package evil-collection
   :after evil
@@ -164,11 +166,33 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package org
-  :hook (org-mode . org-indent-mode)
+    :hook ((org-mode . org-indent-mode)
+	   (org-mode . prettify-symbols-mode))
   :config
   (setq org-startup-indented t)
+  (setq org-startup-with-latex-preview t)
   (setq org-hide-emphasis-markers t)
-  (setq org-ellipsis " ▾"))
+  (setq org-pretty-entities t)
+  (setq org-catch-invisible-edits 'smart)
+  (setq org-fontify-quote-and-verse-blocks t)
+  (setq org-preview-latex-default-process 'dvisvgm)
+  (setq org-format-latex-options (plist-put org-format-latex-options :background "Transparent"))
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.0))
+  (setq org-ellipsis " ▾")
+
+  (setq prettify-symbols-unprettify-at-point 'right-edge)
+
+  (defun my/org-prettify-blocks ()
+    (setq prettify-symbols-alist
+	  '(("#+BEGIN_QUOTE" . "❝")
+            ("#+END_QUOTE" . "❞")
+            ("#+begin_quote" . "❝")
+            ("#+end_quote" . "❞")
+            ("#+BEGIN_EXAMPLE" . "⋮")
+            ("#+END_EXAMPLE" . "⋮")
+            ("#+BEGIN_SRC" . "⟨")
+            ("#+END_SRC" . "⟩"))))
+  (add-hook 'org-mode-hook 'my/org-prettify-blocks))
 
 (use-package visual-fill-column
   :hook ((org-mode . visual-line-mode)
@@ -197,7 +221,8 @@
 	    (evil-define-key 'normal dired-mode-map "o" 'dired-find-file-other-window)
 	    (evil-define-key 'normal dired-mode-map "g" 'revert-buffer)
 	    (evil-define-key 'normal dired-mode-map "s" 'dired-listing-switches)
-	    (evil-define-key 'normal dired-mode-map (kbd "C-o") 'dired-display-file))
+	    (evil-define-key 'normal dired-mode-map (kbd "C-o") 'dired-display-file)
+	    (evil-define-key 'normal dired-mode-map "W" 'wdired-change-to-wdired-mode))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -300,7 +325,20 @@
   (let ((query (if (use-region-p)
                    (buffer-substring-no-properties (region-beginning) (region-end))
                  (read-string "Search Firefox: "))))
-    (browse-url-firefox (concat "https://duckduckgo.com/?q=" (url-hexify-string query)))))
+    (start-process "firefox-search" nil "firefox"
+		   (concat "https://duckduckgo.com/?q=" (url-hexify-string query)))))
+
+(defun my/open-gemini ()
+  (interactive)
+  "Open gemini in firefox."
+  (start-process "firefox-search" nil "firefox"
+		 (concat "https://gemini.google.com")))
+
+(defun my/search-url ()
+  (interactive)
+  "Search for an url on firefox."
+  (let ((url (read-string "URL: ")))
+    (start-process "firefox-search" nil "firefox" url)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -312,7 +350,7 @@
   (require 'emms-setup)
   (emms-all)
   (emms-default-players)
-  (setq emms-source-file-default-directory "~/music/downloads")
+  (setq emms-source-file-default-directory "~/music/")
   (setq emms-browser-covers #'emms-browser-cache-thumbnail-async)
   (setq emms-browser-covers-file-extensions '("jpg" "jpeg" "png" "gif"))
   (setq emms-browser-covers-file-names '("cover" "folder" "front" "art" "album"))
@@ -320,14 +358,11 @@
 	(concat emms-source-file-exclude-regexp
                 "\\|\\.\\(jpg\\|jpeg\\|png\\|gif\\|cue\\|log\\|txt\\)\\'")))
 
+(require 'emms-history)
+(add-hook 'kill-emacs-hook 'emms-history-save)
+
 (with-eval-after-load 'emms
   (evil-define-key 'normal emms-playlist-mode-map
-    (kbd "RET") 'emms-playlist-mode-play-smart  ; Play the track under the cursor
-    (kbd "SPC") 'emms-pause                     ; Spacebar to Pause/Play
-    (kbd "TAB") 'emms-browser-toggle-subitems   ; Play the track under the cursor
-    (kbd "q")   'bury-buffer)                   ; Play the track under the cursor
-
-  (evil-define-key 'normal emms-browser-mode-map
     (kbd "RET") 'emms-playlist-mode-play-smart  ; Play the track under the cursor
     (kbd "SPC") 'emms-pause                     ; Spacebar to Pause/Play
     (kbd "n")   'emms-next                      ; 'n' for Next track
@@ -335,7 +370,13 @@
     (kbd "s")   'emms-stop                      ; 's' to Stop completely
     (kbd "d")   'emms-playlist-mode-kill-track  ; 'd' to delete track from playlist
     (kbd "c")   'emms-playlist-clear            ; 'c' to clear the whole playlist
-    (kbd "q")   'bury-buffer))                  ; 'q' to hide the playlist
+    (kbd "q")   'bury-buffer)                   ; 'q' to hide the playlist
+
+  (evil-define-key 'normal emms-browser-mode-map
+    (kbd "RET") 'emms-browser-add-tracks-and-play  ; Play the track under the cursor
+    (kbd "TAB") 'emms-browser-toggle-subitems      ; Play the track under the cursor
+    (kbd "SPC") 'emms-pause                        ; Spacebar to Pause/Play
+    (kbd "q")   'bury-buffer))                     ; 'q' to hide the playlist
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Other packages 
@@ -375,6 +416,8 @@
    "e" '(:ignore t :which-key "search web")
    "ew" '(eww :which-key "eww search web")
    "ef" '(my/search-web :which-key "firefox search web")
+   "eg" '(my/open-gemini :which-key "open gemini")
+   "eu" '(my/search-url :which-key "firefox search url")
    "p" '(my/run-ps-mem :which-key "ps_mem")
    "t" '(:ignore t :which-key "vterm")
    "to" '(vterm :which-key "toggle vterm")
@@ -383,7 +426,9 @@
    "mp" '(emms-pause :which-key "play/pause")
    "mn" '(emms-next :which-key "next track")
    "mb" '(emms-previous :which-key "prev track")
-   "ms" '(emms-stop :which-key "stop")
+   "ms" '(emms-stop :which-key "stop track")
+   "ml" '(emms-playlist-mode-go :which-key "open playlist")
+   "mo" '(emms-browser :which-key "open browser")
    "o" '(my/open-zathura-target :which-key "zathura open file")))
 
 (use-package hydra)
@@ -428,9 +473,11 @@
    '(counsel evil-collection gcmh general
 	     helpful hydra magit nhexl-mode nix-mode projectile
 	     visual-fill-column vterm which-key)))
+
 (custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
-)
+ '(org-block ((t (:background "#1a1918" :foreground "#b5c4b1" :extend t))))
+ 
+ '(org-block-begin-line ((t (:background "#121110" :foreground "#857f78" :extend t))))
+ '(org-block-end-line ((t (:background "#121110" :foreground "#857f78" :extend t))))
+ 
+ '(org-quote ((t (:background "#1a1918" :foreground "#b5c4b1" :slant italic :extend t)))))
