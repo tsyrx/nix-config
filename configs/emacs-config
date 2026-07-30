@@ -15,7 +15,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; use-package Setup
+;; Nix paths fix 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (let ((nix-paths (list (expand-file-name "~/.nix-profile/bin")
@@ -41,10 +41,6 @@
 
 (setq gc-cons-threshold (* 16 1024 1024))
 
-; (require 'midnight) ; clean up hidden buffers after 3 days
-; (midnight-mode 1)
-; (global-set-key (kbd "C-x C-b") 'ibuffer)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File cleanup
@@ -67,11 +63,18 @@
 (tooltip-mode -1)     ; Disable tooltips
 (set-fringe-mode 0)   ; Set margins
 (menu-bar-mode -1)    ; Disable the menu bar
+(column-number-mode 1)
 (blink-cursor-mode -1)
 (setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode 1)
 (setq show-trailing-whitespace t)
-(setq truncate-lines t)
+(setq-default truncate-lines t)
+(setq scroll-conservatively 101)
+(setq scroll-margin 0)
+(setq scroll-step 1)
+(setq hscroll-conservatively 101)
+(setq hscroll-margin 5)
+(setq hscroll-step 1)
 
 (dolist (mode '(org-mode-hook
 		term-mode-hook
@@ -94,6 +97,7 @@
 ; (load-theme 'leuven t)      ; pretty good light mode
 ; (load-theme 'modus-vivendi t) ; high-contrast dark mode
 (load-theme 'wheatgrass t) ; high-contrast dark mode
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -175,12 +179,31 @@
   (setq org-pretty-entities t)
   (setq org-catch-invisible-edits 'smart)
   (setq org-fontify-quote-and-verse-blocks t)
+  (setq org-fontify-inline-src-blocks t)
   (setq org-preview-latex-default-process 'dvisvgm)
   (setq org-format-latex-options (plist-put org-format-latex-options :background "Transparent"))
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.0))
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 0.4))
   (setq org-ellipsis " ▾")
+  
+  (setq org-emphasis-regexp-components
+	'(" \t('{"             ;; PRE chars
+          "- \t.,:!?;'\")}\\[" ;; POST chars
+          " \t\r\n"            ;; BORDER chars
+          "."                  ;; BODY chars
+          1))                  ;; MAX NEWLINES 
+          
+  (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
 
   (setq prettify-symbols-unprettify-at-point 'right-edge)
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (shell . t)
+     (python . t)
+     (C . t)))
+
+  (add-to-list 'org-src-lang-modes '("asm" . nasm))
 
   (defun my/org-prettify-blocks ()
     (setq prettify-symbols-alist
@@ -191,8 +214,18 @@
             ("#+BEGIN_EXAMPLE" . "⋮")
             ("#+END_EXAMPLE" . "⋮")
             ("#+BEGIN_SRC" . "⟨")
-            ("#+END_SRC" . "⟩"))))
+            ("#+END_SRC" . "⟩")
+            ("#+begin_src" . "⟨")
+            ("#+end_src" . "⟩"))))
   (add-hook 'org-mode-hook 'my/org-prettify-blocks))
+
+(defun my/dired-export-org-to-txt ()
+  (interactive)
+  (dolist (file (dired-get-marked-files))
+    (when (string-match-p "\\.org\\'" file)
+      (with-current-buffer (find-file-noselect file)
+	(org-ascii-export-to-ascii)
+	(kill-buffer)))))
 
 (use-package visual-fill-column
   :hook ((org-mode . visual-line-mode)
@@ -222,6 +255,7 @@
 	    (evil-define-key 'normal dired-mode-map "g" 'revert-buffer)
 	    (evil-define-key 'normal dired-mode-map "s" 'dired-listing-switches)
 	    (evil-define-key 'normal dired-mode-map (kbd "C-o") 'dired-display-file)
+	    (evil-define-key 'normal dired-mode-map "E" 'my/dired-export-org-to-txt)
 	    (evil-define-key 'normal dired-mode-map "W" 'wdired-change-to-wdired-mode))
 
 
@@ -236,6 +270,7 @@
   (setq vterm-max-scrollback 10000)
   (evil-define-key 'insert vterm-mode-map (kbd "<escape>") 'vterm-send-escape)
   (evil-define-key 'insert vterm-mode-map (kbd "C-S-v") 'vterm-yank)
+  (evil-define-key 'insert vterm-mode-map (kbd "C-w") 'evil-window-map)
   (evil-define-key 'visual vterm-copy-mode-map "y" 'vterm-copy-mode-done)
 
   (add-hook 'vterm-copy-mode-hook
@@ -247,6 +282,12 @@
 (defun my/vterm-new ()
   (interactive)
   (vterm t))
+
+(defun my/vterm-named (name)
+  (interactive "sVterm name: ")
+  (let ((buf (vterm (concat "*vterm: " name "*"))))
+    (with-current-buffer buf
+	(rename-buffer (concat "*vterm: " name "*") t))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ps_mem
@@ -382,6 +423,12 @@
 ;; Other packages 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(setq tramp-default-method "sshx")
+(setq remote-file-name-inhibit-cache nil)
+(setq vc-ignore-dir-regexp
+      (format "%s\\|%s" vc-ignore-dir-regexp tramp-file-name-regexp))
+(setq tramp-verbose 1)
+
 (use-package nhexl-mode
   :commands nhexl-mode
   :config
@@ -398,6 +445,14 @@
 (use-package magit
   :commands magit-status)
 
+(use-package nasm-mode
+    :mode "\\.asm\\'"
+    :config
+    (add-hook 'nasm-mode-hook (lambda ()
+				(setq indent-tabs-mode nil)
+				(setq nasm-basic-offset 4))))
+
+(setq python-check-command "ruff check .")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Keybinds
@@ -422,6 +477,7 @@
    "t" '(:ignore t :which-key "vterm")
    "to" '(vterm :which-key "toggle vterm")
    "tn" '(my/vterm-new :which-key "new vterm")
+   "tm" '(my/vterm-named :which-key "new named vterm")
    "m" '(:ignore t :which-key "music")
    "mp" '(emms-pause :which-key "play/pause")
    "mn" '(emms-next :which-key "next track")
@@ -429,6 +485,7 @@
    "ms" '(emms-stop :which-key "stop track")
    "ml" '(emms-playlist-mode-go :which-key "open playlist")
    "mo" '(emms-browser :which-key "open browser")
+   "f" '(my/toggle-window-maximize :which-key "fullscreen")
    "o" '(my/open-zathura-target :which-key "zathura open file")))
 
 (use-package hydra)
@@ -459,6 +516,20 @@
 	(start-process "zathura" nil "zathura" file)
       (message "No file found."))))
 
+(defvar my/saved-window-configuration nil)
+(defun my/toggle-window-maximize ()
+  (interactive)
+  (if (and my/saved-window-configuration
+	   (eq (length (window-list)) 1))
+      (progn
+	(jump-to-register ?_)
+	(setq my/saved-window-configuration nil))
+    (progn 
+      (window-configuration-to-register ?_)
+      (setq my/saved-window-configuration t)
+      (delete-other-windows))))
+	   
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom
@@ -480,4 +551,14 @@
  '(org-block-begin-line ((t (:background "#121110" :foreground "#857f78" :extend t))))
  '(org-block-end-line ((t (:background "#121110" :foreground "#857f78" :extend t))))
  
+ '(org-code ((t (:inherit fixed-pitch :background "#1a1918" :foreground "#b5c4b1" :slant normal))))
+ '(org-inline-src-block ((t (:inherit fixed-pitch :background "#1a1918" :foreground "#b5c4b1" :slant normal))))
  '(org-quote ((t (:background "#1a1918" :foreground "#b5c4b1" :slant italic :extend t)))))
+
+(add-hook 'prog-mode-hook (lambda () (visual-line-mode -1)))
+
+(defun my/org-src-mode-setup ()
+  (visual-line-mode -1)
+  (setq-local truncate-lines t))
+
+(add-hook 'org-src-mode-hook 'my/org-src-mode-setup)

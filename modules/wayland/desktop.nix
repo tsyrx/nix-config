@@ -5,15 +5,21 @@
 		brightnessctl
 		wofi
 		i3status
+    grim 
+    slurp
+    wl-clipboard
+    swappy
 
 		zathura
 
     wlr-randr
+
 	];
 
 	home.file = {
 		".config/sway/config".source = ../../configs/sway-config;
 		".config/i3status/i3status.conf".source = ../../configs/sway-i3-status;
+		".config/i3status/i3status_wrapper.sh".source = ../../configs/i3status-wrapper;
 	};
 
   home.sessionVariables = {

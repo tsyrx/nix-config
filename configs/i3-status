@@ -1,5 +1,6 @@
 general {
-    interval 		= 2
+    output_format   = "i3bar"
+    interval 	    = 2
     markup          = 'pango'
     color_good      = '#ffffff'
     color_degraded  = '#BF616A'

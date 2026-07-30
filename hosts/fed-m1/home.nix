@@ -36,11 +36,13 @@
 	programs.home-manager.enable = true;
 
 	##############################
-	# pwndbg
+	# other packages
 	##############################
 
   home.packages = with pkgs; [
-        inputs.pwndbg.packages."aarch64-linux".default
+        (writeShellScriptBin "pwndbg" ''
+            exec ${inputs.pwndbg.packages."aarch64-linux".default}/bin/pwndbg -x ~/.pwndbg-theme "$@"
+        '')
         caido-desktop
         chromium
         texlive.combined.scheme-medium

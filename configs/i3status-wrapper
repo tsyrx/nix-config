@@ -1,0 +1,9 @@
+i3status -c ~/.config/i3status/i3status.conf | while read -r line; do
+    if wpctl inspect @DEFAULT_AUDIO_SINK@ 2>/dev/null | grep -qi 'bluez'; then
+	AUDIO_TYPE=" BT "
+    else
+	AUDIO_TYPE=" SYS "
+    fi
+
+    echo "${line/ | / |${AUDIO_TYPE}}"
+done

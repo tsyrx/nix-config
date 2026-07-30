@@ -6,8 +6,10 @@
 		cmake
 		gcc
 		gnumake
+    binutils
 		libtool	
 		perl
+    ruff
 
     # general tools 
 		tmux 
@@ -18,25 +20,42 @@
 		ripgrep 
 		bat
 		ps_mem
-    gemini-cli
     wlr-randr
+    nmap
+    parallel
 
-    # pwn
+    # pwn 
 		radare2 
-		python3Packages.ropper 
+    qemu
+    pwninit
 		ltrace 
 		strace 
 		file 
-		checksec 
 		gdb
 		gef
+    xxd
 		ghidra 
+    pkgsCross.gnu64.buildPackages.binutils
 
     # other 
     typer
     nicotine-plus
     mpv
     imagemagick
+
+    # python stuff 
+		(python3.withPackages (ps: with ps; [
+      # pwn 
+      pwntools
+      requests
+      ropper
+      scapy
+
+      # other 
+      textual
+      netifaces
+      ipython
+    ]))
 	] ++ lib.optionals (pkgs.stdenv.isx86_64) [
 		kitty 
 	]; 
@@ -49,23 +68,23 @@
 	}; 
 
   programs.emacs = {
-  enable = true;
-  
-  package = pkgs.emacs-pgtk.override {
-    withNativeCompilation = false;
-  };
-  
-  extraPackages = epkgs: [
-    epkgs.pdf-tools
-    epkgs.vterm
-    epkgs.exec-path-from-shell
-    epkgs.emms
-  ];
-};
+    enable = true;
 
-services.emacs = {
-	enable = true;
-};
+    package = pkgs.emacs-pgtk.override {
+      withNativeCompilation = false;
+    };
+
+    extraPackages = epkgs: [
+      epkgs.pdf-tools
+      epkgs.vterm
+      epkgs.exec-path-from-shell
+      epkgs.emms
+    ];
+  };
+
+  services.emacs = {
+	  enable = true;
+  };
 
 	programs.direnv = {
 		enable = true; 
@@ -158,7 +177,6 @@ services.emacs = {
 			ls = "ls --group-directories-first --color=auto";
 			grep = "grep --color=auto";
 			rm = "rm -i";
-			checksec = "checksec file";
 			m-hms = "home-manager switch --flake ~/nix-config/#tsyr@fred"; 
 			t-hms = "home-manager switch -f ~/nix-config/hosts/nixos-t480/home.nix"; 
 			typer = "typer --config ~/.config/typer.yml";
@@ -183,6 +201,14 @@ services.emacs = {
 			fi
 
 			fastfetch
-			'';
+
+      if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
+          vterm_track_directory() {
+              print -Pn "\e]51;A$PWD\e\\"
+          }
+          autoload -U add-zsh-hook
+          add-zsh-hook chpwd vterm_track_directory
+      fi
+      '';
 	};
 }
