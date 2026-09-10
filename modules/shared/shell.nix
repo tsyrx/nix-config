@@ -36,6 +36,8 @@
     xxd
 		ghidra 
     pkgsCross.gnu64.buildPackages.binutils
+    pkgsCross.gnu64.buildPackages.gcc
+    one_gadget
 
     # other 
     typer
@@ -171,18 +173,28 @@
 		}; 
 
 		shellAliases = {
-			sudo = "sudo "; 
-			ll = "ls -lah";
-			l = "ls -lh";
-			ls = "ls --group-directories-first --color=auto";
-			grep = "grep --color=auto";
 			rm = "rm -i";
+			ll = "ls -lah";
+			l  = "ls -lh";
+			ls = "ls --group-directories-first --color=auto";
+			sudo  = "sudo "; 
+			grep  = "grep --color=auto";
 			m-hms = "home-manager switch --flake ~/nix-config/#tsyr@fred"; 
 			t-hms = "home-manager switch -f ~/nix-config/hosts/nixos-t480/home.nix"; 
 			typer = "typer --config ~/.config/typer.yml";
-		}; 
+			xldd = "qemu-x86_64 -L ./x86_64-root -E LD_TRACE_LOADED_OBJECTS=1";
+		} // builtins.listToAttrs (map (tool: {
+      name = "x${tool}";
+      value = "x86_64-unknown-linux-gnu-${tool}";
+    }) [
+      "addr2line" "ld" "ar" "ld.bfd" "as"
+        "ld.gold" "c++" "nm" "cc" "objcopy"
+        "c++filt" "objdump" "cpp" "ranlib"
+        "dwp" "readelf" "elfedit" "size" "g++"
+        "strings" "gcc" "strip" "gprof"
+    ]);
 
-		envExtra = ''
+    envExtra = ''
 			export LS_COLORS='di=1;0;1;41:ln=35:so=30;47:pi=0;42:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
 			'';
 
